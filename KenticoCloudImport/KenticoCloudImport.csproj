@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="0.9.9.2" />
     <PackageReference Include="KenticoCloud.ContentManagement" Version="1.0.1" />
-    <PackageReference Include="KenticoCloud.Delivery" Version="4.13.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

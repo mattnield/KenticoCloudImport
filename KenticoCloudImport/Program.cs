@@ -1,100 +1,33 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
-using KenticoCloud.ContentManagement;
-using KenticoCloud.ContentManagement.Models.Assets;
-using KenticoCloud.ContentManagement.Models.Items;
-using KenticoCloud.ContentManagement.Models.StronglyTyped;
-using AngleSharp.Parser.Html;
-using KenticoCloud.Delivery;
 
 namespace KenticoCloudImport
 {
-  class Program
-  {
-
-    static ContentManagementClient _managementClient;
-    static DeliveryClient _deliveryClient;
-    static string _testName = "test_10";
-    static void Main(string[] args)
+    class Program
     {
-      Console.WriteLine("Creating document");
 
-      var clientOptions = new ContentManagementOptions
-      {
-        ProjectId = "[Project Id]",
-        ApiKey = "[API Key]"
-      };
+        static void Main(string[] args)
+        {
+            var controller = new ImportController(projectId: "02c61010-af4d-4ec1-a7bf-2ad08454111a", apiKey: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIwZTAyNjNlODNmNTY0M2NlYjRlNDNjMjU3OTllYzczZSIsImlhdCI6IjE1MjEyNDEyMzQiLCJleHAiOiIxNTI5MDE3MjM0IiwicHJvamVjdF9pZCI6IjAyYzYxMDEwYWY0ZDRlYzFhN2JmMmFkMDg0NTQxMTFhIiwidmVyIjoiMi4wLjAiLCJ1aWQiOiJ1c3JfMHZPTjBVTDFBQ2ZVOXNyYjVUczQyWSIsInBlcm1pc3Npb25zIjpbInZpZXctY29udGVudCIsImNvbW1lbnQiLCJ1cGRhdGUtd29ya2Zsb3ciLCJ1cGRhdGUtY29udGVudCIsInB1Ymxpc2giLCJjb25maWd1cmUtc2l0ZW1hcCIsImNvbmZpZ3VyZS10YXhvbm9teSIsImNvbmZpZ3VyZS1jb250ZW50X3R5cGVzIiwiY29uZmlndXJlLXdpZGdldHMiLCJjb25maWd1cmUtd29ya2Zsb3ciLCJtYW5hZ2UtcHJvamVjdHMiLCJtYW5hZ2UtdXNlcnMiLCJjb25maWd1cmUtcHJldmlldy11cmwiLCJjb25maWd1cmUtY29kZW5hbWVzIiwiYWNjZXNzLWFwaS1rZXlzIiwibWFuYWdlLWFzc2V0cyIsIm1hbmFnZS1sYW5ndWFnZXMiLCJtYW5hZ2Utd2ViaG9va3MiLCJtYW5hZ2UtdHJhY2tpbmciXSwiYXVkIjoibWFuYWdlLmtlbnRpY29jbG91ZC5jb20ifQ.XFJvRQ3z5F0HXwtInlUx2KEhf7Szmy1mISuWvJV_44k");
+            CreateContentItem(controller);
+            //CreateAsset(controller);
+            Console.WriteLine("Done.");
+            Console.ReadLine();
+        }
 
-      _managementClient = new ContentManagementClient(clientOptions);
-      _deliveryClient = new DeliveryClient(new DeliveryOptions { ProjectId = clientOptions.ProjectId });
+        private static void CreateAsset(ImportController controller)
+        {
+            Console.WriteLine("Creating asset...");
+            var assetId = controller.CreateAssetAsync();
+            Console.WriteLine($"\tCreated asset with id '{assetId.Result}'");
+        }
 
-      var tCreateItem = CreateStub();
-      var createItem = tCreateItem.Result;
-      Console.WriteLine($"\tCreated {createItem.Id}");
-
-      CreateVariant();
-      Console.WriteLine("Done");
+        private static void CreateContentItem(ImportController controller)
+        {
+            Console.WriteLine($"Creating document...");
+            var itemCodename = controller.CreateItemAsync("Test Document").Result;
+            Console.WriteLine($"\tCreated item with code '{itemCodename}'");
+            var itemGuid = controller.CreateItemVariantAsync(itemCodename);
+            Console.WriteLine($"\tUpdated content item {itemGuid.Result}");
+        }
     }
-    
-    private static System.Threading.Tasks.Task<ContentItemModel> CreateStub()
-    {
-      var item = new ContentItemCreateModel
-      {
-        Name = _testName,
-        Type = ContentTypeIdentifier.ByCodename("simple_page")
-      };
-
-      return _managementClient.CreateContentItemAsync(item);
-    }
-
-    private static bool IsValidHtml(string html)
-    {
-      var parser = new HtmlParser(new HtmlParserOptions { IsStrictMode = false });
-      try
-      {
-        var doc = parser.Parse(html);
-
-        return true;
-      }
-      catch (HtmlParseException parseException)
-      {
-        Console.WriteLine($"Computer says no: {parseException.Message}");
-        return false;
-      }
-    }
-
-    private static async void CreateVariant()
-    {
-      Console.WriteLine("Creating variant");
-      var htmlMarkup = @"<h1>Some content</h1>
-                        <p>This is the content</p>";
-
-      if (!IsValidHtml(htmlMarkup)) { return; }
-
-      var taxonmy = _deliveryClient.GetTaxonomyAsync("dish_colour");
-
-      var content = new SimplePage
-      {
-        PageTitle = "Test import",
-        PageContent = htmlMarkup,
-        DishColour = new[] { TaxonomyTermIdentifier.ByCodename("green") },
-        PageTeaser = new[] { AssetIdentifier.ByExternalId(_testName) }
-      };
-
-      // Specifies the content item and the language variant
-      ContentItemIdentifier itemIdentifier = ContentItemIdentifier.ByCodename(_testName);
-      LanguageIdentifier languageIdentifier = LanguageIdentifier.DEFAULT_LANGUAGE;
-      ContentItemVariantIdentifier identifier = new ContentItemVariantIdentifier(itemIdentifier: itemIdentifier, languageIdentifier: languageIdentifier);
-
-      // Upserts a language variant of your content item
-      try
-      {
-        ContentItemVariantModel<SimplePage> response = await _managementClient.UpsertContentItemVariantAsync<SimplePage>(identifier, content);
-      }
-      catch (Exception ex)
-      {
-        Console.WriteLine($"ERROR: {ex.Message}");
-      }
-    }
-  }
 }

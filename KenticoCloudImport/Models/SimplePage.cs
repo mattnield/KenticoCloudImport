@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 using KenticoCloud.ContentManagement.Models.Items;
 using KenticoCloud.ContentManagement.Models.Assets;
 
-namespace KenticoCloudImport
+namespace KenticoCloudImport.Models
 {
     public partial class SimplePage
     {
