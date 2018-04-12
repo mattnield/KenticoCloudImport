@@ -1,0 +1,1 @@
+﻿C:\Users\mattn\KenticoCloud\ModelGenerator\CloudModelGenerator.exe -p 02c61010-af4d-4ec1-a7bf-2ad08454111a -t -n KenticoCloudImport -o C:\users\mattn\projects\KenticoCloudImport\KenticoCloudImport\Models\ -c
